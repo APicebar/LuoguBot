@@ -3,23 +3,30 @@ import nonebot
 from datetime import datetime
 from aiocqhttp.exceptions import Error as CQHttpError
 
-"""
-def ConnectDB(uid, time):
-    passwd='woyongyuanxihuanbinggun'
-    conn = mysql.connector.connect(user='ApiceBar', password=passwd, database='benbenOB')
+passwd = 'woyongyuanxihuanbinggun'
+dbhost = '120.78.155.13'
+dbuser = 'ApiceBar'
+conn = mysql.connector.connect(host=dbhost, user=dbuser, password=passwd, database='benbenOB')
+cur = conn.cursor()
+
+@nonebot.scheduler.scheduled_job('cron', hour='*')
+def ConnectDB():
+    if cur :
+        cur.close()
+    else :
+        nonebot.logger.info('No cursor, skip')
+    if conn :
+        conn.close()
+    else :
+        nonebot.logger.info('No connection, skip')
+    conn = mysql.connector.connect(host=dbhost, user=dbuser, password=passwd, database='benbenOB')
     cur = conn.cursor()
-    cur.execute('select count(*) from ')
-"""
+    nonebot.logger.info('Database Reconnected.')
 
 # @nonebot.scheduler.scheduled_job('cron', day='*')
 @nonebot.on_command('dk', permission=nonebot.permission.PRIVATE)
 async def DailyKingReport(session: nonebot.CommandSession):
-    if session.event.group_id:
-        return
     date = datetime.now().strftime('%Y-%m-%d')
-    passwd='woyongyuanxihuanbinggun'
-    conn = mysql.connector.connect(host='120.78.155.13', user='ApiceBar', password=passwd, database='benbenOB')
-    cur = conn.cursor()
     cur.execute('''select username,
             count(*) from benben
             where time like %s
@@ -27,7 +34,14 @@ async def DailyKingReport(session: nonebot.CommandSession):
             order by count(*) desc
             limit 1''', (date + '%',))
     data = cur.fetchall()
-    cur.close()
-    conn.close()
-    await session.send('Today\'s Dragonking is ' + data[0][0] +', Total ' + str(data[0][1]))
+    await session.send('Today\'s Dragonking: ' + data[0][0] +'\nTotal: ' + str(data[0][1]))
+
+@nonebot.on_command('total', permission=nonebot.permission.PRIVATE)
+async def GetTotal(session: nonebot.CommandSession):
+    date = datetime.now().strftime('%Y-%m-%d')
+    cur.execute('''select count(*)
+                from benben
+                where time like %s''',(date + '%',))
+    data = cur.fetchall()
+    await session.send('Today\'s total benben: ' + str(data[0][0]))
 
