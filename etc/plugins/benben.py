@@ -72,6 +72,12 @@ async def bind(session: nonebot.CommandSession):
     urlconn = request.urlopen('https://www.luogu.com.cn/user/' + uid + '?_contentOnly=1')
     data = urlconn.read();
     rawdict = json.loads(data)
+    if rawdict['code'] == 404:
+        await session.send('Bind Failed: Invalid user.')
+        return
+    if rawdict['code'] == 502:
+        await session.send('Bind Failed: Cannot connect to Luogu.\n(Is Luogu exploded?)')
+        return
     userdict = rawdict['currentData']['user']
     sqlite_cur.execute('''insert into LuoguBindData (UserQQ, uid ,username) VALUES (?, ?, ?)''', (userid, uid, userdict['name']))
     level = ''
