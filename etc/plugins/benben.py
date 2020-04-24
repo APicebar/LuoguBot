@@ -10,7 +10,7 @@ from urllib import request
 bot = nonebot.get_bot()
 
 # SQLite Init
-sqlite = sqlite3.connect('userdata.db')
+sqlite = sqlite3.connect('./data/benben/data.db')
 sqlite_cur = sqlite.cursor()
 sqlite_cur.execute('''create table if not exists LuoguBindData(
                     UserQQ int primary key not null,
@@ -30,22 +30,32 @@ nonebot.logger.info('MySQL Init Success.')
 
 # Command Zone
 @nonebot.scheduler.scheduled_job('cron', hour='*')
-def ConnectDB():
-    if cur :
+def ReConnectDB():
+    if cur:
         cur.close()
-    else :
+    else:
         nonebot.logger.info('No cursor, skip')
-    if conn :
+    if conn:
         conn.close()
-    else :
+    else:
         nonebot.logger.info('No connection, skip')
+    if sqlite:
+        sqlite.close()
+    else:
+        nonebot.logger.info('No local connection, skip')
+    if sqlite_cur:
+        sqlite_cur.close()
+    else:
+        nonebot.logger.info('No local cursor, skip')
     conn = mysql.connector.connect(host=dbhost, user=dbuser, password=passwd, database='benbenOB')
     cur = conn.cursor()
+    sqlite = sqlite3.connect('./data/benben/data.db')
+    sqlite_cur = sqlite.cursor()
     nonebot.logger.info('Database Reconnected.')
 
 # @nonebot.scheduler.scheduled_job('cron', day='*', hour=23, minute=59, second=58)
 @nonebot.on_command('dk', permission=nonebot.permission.PRIVATE)
-async def DailyKingReport():
+async def DailyKingReport(session: nonebot.CommandSession):
     date = datetime.now().strftime('%Y-%m-%d')
     cur.execute('''select username,
             count(*) from benben
@@ -54,8 +64,7 @@ async def DailyKingReport():
             order by count(*) desc
             limit 1''', (date + '%',))
     data = cur.fetchall()
-    await bot.send_group_msg(group_id, message='Today\'s Dragonking: ' + data[0][0] +'\nTotal: ' + str(data[0][1]))
-
+    await session.send('Today\'s DragonKing: ' + data[0][0] + '\nTotal: ' + str(data[0][1]))
 @nonebot.on_command('total', permission=nonebot.permission.PRIVATE)
 async def GetTotal(session: nonebot.CommandSession):
     date = datetime.now().strftime('%Y-%m-%d')
@@ -68,7 +77,8 @@ async def GetTotal(session: nonebot.CommandSession):
 @nonebot.on_command('bind', permission=nonebot.permission.PRIVATE)
 async def bind(session: nonebot.CommandSession):
     userid = session.event.user_id
-    uid = session.get('uid', prompt='Usage: /bind <uid>')
+    try: uid = session.args['uid']
+    except KeyError: await session.send('No uid input.\n/bind <uid>')
     urlconn = request.urlopen('https://www.luogu.com.cn/user/' + uid + '?_contentOnly=1')
     data = urlconn.read();
     rawdict = json.loads(data)
@@ -79,7 +89,12 @@ async def bind(session: nonebot.CommandSession):
         await session.send('Bind Failed: Cannot connect to Luogu.\n(Is Luogu exploded?)')
         return
     userdict = rawdict['currentData']['user']
-    sqlite_cur.execute('''insert into LuoguBindData (UserQQ, uid ,username) VALUES (?, ?, ?)''', (userid, uid, userdict['name']))
+    try:
+        sqlite_cur.execute('''insert into LuoguBindData (UserQQ, uid ,username) VALUES (?, ?, ?)''', (userid, uid, userdict['name']))
+        sqlite.commit()
+    except sqlite3.IntegrityError:
+        await session.send('Bind Falied: Binded.')
+        return
     level = ''
     if userdict['ccfLevel'] == 0:
         level = 'None/Hidden'
@@ -87,15 +102,51 @@ async def bind(session: nonebot.CommandSession):
         level = str(userdict['ccfLevel'])
     await session.send('Bind Succeed.\nName: ' + userdict['name'] + '\nACs: ' + str(userdict['passedProblemCount']) + '\nCCFLevel: ' + level)
 
+@nonebot.on_command('stat',permission=nonebot.permission.PRIVATE)
+async def stat(session: nonebot.CommandSession):
+    try: uid = session.args['uid']
+    except KeyError: 
+        await session.send('No uid input or binding.')
+        return
+    urlconn = request.urlopen('https://www.luogu.com.cn/user/' + uid + '?_contentOnly=1')
+    data = urlconn.read()
+    rawdict = json.loads(data)
+    if rawdict['code'] == 404:
+        await session.send('Request Failed: Invalid user.')
+        return
+    if rawdict['code'] == 502:
+        await session.send('Request Failed: Cannot connect to Luogu.\n(Is Luogu exploded?)')
+        return
+    userdict = rawdict['currentData']['user']
+    level = ''
+    if userdict['ccfLevel'] == 0:
+        level = 'None/Hidden'
+    await session.send(userdict['name'] + '\nFollowings: ' + str(userdict['followingCount']) \
+            + '\nFollowers: ' + str(userdict['followerCount']) + '\nSubmits/ACs: ' +str(userdict['submittedProblemCount']) \
+            + '/' + str(userdict['passedProblemCount']) + '\nNameColor: ' + userdict['color'] \
+            + '\nCCFLevel:' + level)
+
 # Args Parser Zone
 
 @bind.args_parser
 async def _(session: nonebot.CommandSession):
     striparg = session.current_arg_text.strip()
-    if session.is_first_run:
-        if striparg:
-            session.state['uid'] = striparg
-            return 
+    if striparg:
+        session.state['uid'] = striparg
+        return 
     if not striparg:
-        session.pause('No uid input.\nUsage: /bind <uid>')
-    session.state[session.current_key] = striparg
+        return
+
+@stat.args_parser
+async def __(session: nonebot.CommandSession):
+    striparg = session.current_arg_text.strip()
+    if striparg:
+        session.state['uid'] = striparg
+        return
+    if not striparg:
+        sqlite_cur.execute('select uid from LuoguBindData where UserQQ = ?', (session.event.user_id, ))
+        data = sqlite_cur.fetchall()
+        if data:
+            session.state['uid'] = str(data[0][0])
+        if not data:
+            return
