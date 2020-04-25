@@ -39,18 +39,8 @@ def ReConnectDB():
         conn.close()
     else:
         nonebot.logger.info('No connection, skip')
-    if sqlite:
-        sqlite.close()
-    else:
-        nonebot.logger.info('No local connection, skip')
-    if sqlite_cur:
-        sqlite_cur.close()
-    else:
-        nonebot.logger.info('No local cursor, skip')
     conn = mysql.connector.connect(host=dbhost, user=dbuser, password=passwd, database='benbenOB')
     cur = conn.cursor()
-    sqlite = sqlite3.connect('./data/benben/data.db')
-    sqlite_cur = sqlite.cursor()
     nonebot.logger.info('Database Reconnected.')
 
 # @nonebot.scheduler.scheduled_job('cron', day='*', hour=23, minute=59, second=58)
@@ -100,7 +90,8 @@ async def bind(session: nonebot.CommandSession):
         level = 'None/Hidden'
     else:
         level = str(userdict['ccfLevel'])
-    await session.send('Bind Succeed.\nName: ' + userdict['name'] + '\nACs: ' + str(userdict['passedProblemCount']) + '\nCCFLevel: ' + level)
+    await session.send('Bind Succeed.\nName: ' + userdict['name'] + '\nSubmits/ACs: ' \
+            + str(userdict['submittedProblemCount']) + '/' + str(userdict['passedProblemCount']) + '\nCCFLevel: ' + level)
 
 @nonebot.on_command('stat',permission=nonebot.permission.PRIVATE)
 async def stat(session: nonebot.CommandSession):
@@ -121,11 +112,23 @@ async def stat(session: nonebot.CommandSession):
     level = ''
     if userdict['ccfLevel'] == 0:
         level = 'None/Hidden'
+    else:
+        level = str(userdict['ccfLevel'])
     await session.send(userdict['name'] + '\nFollowings: ' + str(userdict['followingCount']) \
             + '\nFollowers: ' + str(userdict['followerCount']) + '\nSubmits/ACs: ' +str(userdict['submittedProblemCount']) \
             + '/' + str(userdict['passedProblemCount']) + '\nNameColor: ' + userdict['color'] \
             + '\nCCFLevel:' + level)
 
+@nonebot.on_command('unbind', permission=nonebot.permission.PRIVATE)
+async def unbind(session: nonebot.CommandSession):
+    sqlite_cur.execute('select * from LuoguBindData where UserQQ = ?', (session.event.user_id, ))
+    if not sqlite_cur.fetchall():
+        await session.send('No binding data for you.')
+        return
+    sqlite_cur.execute('delete from LuoguBindData where UserQQ = ?', (session.event.user_id, ))
+    sqlite.commit()
+    await session.send('Unbind Succeed.')
+    
 # Args Parser Zone
 
 @bind.args_parser
