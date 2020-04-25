@@ -128,6 +128,18 @@ async def unbind(session: nonebot.CommandSession):
     sqlite_cur.execute('delete from LuoguBindData where UserQQ = ?', (session.event.user_id, ))
     sqlite.commit()
     await session.send('Unbind Succeed.')
+
+@nonebot.on_command('help', permission=nonebot.permission.PRIVATE)
+async def help(session: nonebot.CommandSession):
+    await session.send('''LuoguBot Beta
+
+/dk --- Today\'s DragonKing
+/total --- Today\'s total benben
+/bind <uid> --- Bind your Luogu account
+/stat [uid] --- Status for Luogu
+/unbind --- Unbind your Luogu account
+
+by APicebar & Naive_Cat''')
     
 # Args Parser Zone
 
