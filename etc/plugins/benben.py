@@ -138,6 +138,8 @@ async def help(session: nonebot.CommandSession):
 /bind <uid> --- Bind your Luogu account
 /stat [uid] --- Status for Luogu
 /unbind --- Unbind your Luogu account
+/cf --- Latest CF contest
+/at --- Latest ATC contest
 
 by APicebar & Naive_Cat''')
     
