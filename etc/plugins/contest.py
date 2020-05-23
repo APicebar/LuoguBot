@@ -1,13 +1,19 @@
-from nonebot import on_command, CommandSession
-import  requests
+from nonebot import on_command, CommandSession, permission, get_bot
+import requests
 import re
+import datetime
 
 month=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 days=[0,31,28,31,30,31,30,31,31,30,31,30,31]
 
+bot=get_bot()
+
 name=[]
 start=[]
 length=[]
+
+cfcoold=datetime.datetime.now()-datetime.timedelta(minutes=10)
+atcoold=datetime.datetime.now()-datetime.timedelta(minutes=10)
 
 def get_contest():
     global name,start,length
@@ -88,8 +94,14 @@ def AT_get_contest():
         start.append(orz)
     return res
 
-@on_command('CF', aliases=('CodeForces','cf','codeforces','Codeforces'))
+@on_command('CF', aliases=('CodeForces','cf','codeforces','Codeforces'), permission=permission.EVERYBODY, only_to_me=False)
 async def CodeForces_Report(session: CommandSession):
+    global cfcoold
+    cd=datetime.datetime.now()-cfcoold
+    if permission.check_permission(bot, session.event, permission.GROUP):
+        if cd.total_seconds() <= 600:
+            await session.send("还在冷却...\n等待 %d 秒后再试" % (600-int(cd.total_seconds())))
+            return
     get_contest()
     string='近期 CodeForces 比赛预告:\n------------------\n'
     leng=len(name)
@@ -99,9 +111,16 @@ async def CodeForces_Report(session: CommandSession):
         for i in range(0,leng):
             string=string+'比赛名称: '+name[i]+'\n比赛开始时间: '+start[i]+'\n比赛时长: '+length[i]+'\n------------------\n'
     await session.send(string)
+    cfcoold=datetime.datetime.now()
 
-@on_command('AT', aliases=('ATCoder','at','atcoder','Atcoder','AtCoder'))
+@on_command('AT', aliases=('ATCoder','at','atcoder','Atcoder','AtCoder'), permission=permission.EVERYBODY, only_to_me=False)
 async def ATCoder_Report(session: CommandSession):
+    global atcoold
+    cd=datetime.datetime.now()-atcoold
+    if permission.check_permission(bot, session.event, permission.GROUP):
+        if cd.total_seconds() <= 600:
+            await session.send("还在冷却...\n等待 %d 秒后再试" % (600-int(cd.total_seconds())))
+            return
     AT_get_contest()
     string='近期 ATCoder 比赛预告:\n------------------\n'
     leng=len(name)
@@ -111,3 +130,4 @@ async def ATCoder_Report(session: CommandSession):
         for i in range(0,leng):
             string=string+'比赛名称: '+name[i]+'\n比赛开始时间: '+start[i]+'\n比赛时长: '+length[i]+'\n------------------\n'
     await session.send(string)
+    atcoold=datetime.datetime.now()

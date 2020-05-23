@@ -4,7 +4,7 @@ import nonebot
 from aiocqhttp.exceptions import Error as CQHttpError
 import sqlite3
 import random
-from urllib import request
+from urllib import request, error
 import hashlib
 import re
 
@@ -35,7 +35,11 @@ async def stat(session: nonebot.CommandSession):
     except KeyError: 
         await session.send('没有绑定或者uid!')
         return
-    urlconn = request.urlopen('https://www.luogu.com.cn/user/' + uid + '?_contentOnly=1')
+    try:
+        urlconn = request.urlopen('https://www.luogu.com.cn/user/' + uid + '?_contentOnly=1')
+    except error.HTTPError:
+        await session.send("你咕炸力，连不上!")
+        return
     data = urlconn.read()
     rawdict = json.loads(data)
     if rawdict['code'] == 404:
@@ -59,6 +63,9 @@ async def bind(session: nonebot.CommandSession):
     try:
         req = request.urlopen(url + "/user/" + args['uid'] + '?_contentOnly')
     except KeyError: pass
+    except error.HTTPError:
+        await session.send("你咕炸力，连不上!")
+        return
     raw = json.loads(req.read())
     if raw['code'] == 404:
         await session.send("没这个人!")
@@ -80,6 +87,8 @@ async def help(session: nonebot.CommandSession):
 /stat [uid] --- 查询洛谷
 /cf --- 最近的CodeForces比赛
 /at --- 最近的ATC比赛
+/cfrating <name>--- 查询CodeForces Rating
+/atrating <name>--- 查询ATC Rating
 by APicebar & Naive_Cat''')
 
 @bind.args_parser
