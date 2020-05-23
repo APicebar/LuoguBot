@@ -29,6 +29,30 @@ salt = rawdata['salt']
 scr = re.compile(r'(\d)+')
 # End
 
+@nonebot.on_command('stat',permission=nonebot.permission.EVERYBODY)
+async def stat(session: nonebot.CommandSession):
+    try: uid = session.args['uid']
+    except KeyError: 
+        await session.send('没有绑定或者uid!')
+        return
+    urlconn = request.urlopen('https://www.luogu.com.cn/user/' + uid + '?_contentOnly=1')
+    data = urlconn.read()
+    rawdict = json.loads(data)
+    if rawdict['code'] == 404:
+        await session.send('没这个人!')
+        return
+    userdict = rawdict['currentData']['user']
+    level = ''
+    if userdict['ccfLevel'] == 0:
+        level = '无/藏了以方便假'
+    else:
+        level = str(userdict['ccfLevel'])
+    await session.send(userdict['name'] + '\n关注: ' + str(userdict['followingCount']) \
+            + '\n粉丝: ' + str(userdict['followerCount']) + '\nACs/Submits: ' +str(userdict['passedProblemCount']) \
+            + '/' + str(userdict['submittedProblemCount']) + '\n颜色: ' + userdict['color'] \
+            + '\nCCF评级:' + level)
+
+
 @nonebot.on_command('bind', permission=nonebot.permission.PRIVATE)
 async def bind(session: nonebot.CommandSession):
     args = session.args
@@ -70,3 +94,17 @@ async def _(session: nonebot.CommandSession):
         check = hashlib.md5(rand.encode('utf-8')).hexdigest()
         session.state['check'] = check
         session.pause("请将个人主页的签名改为以下字符:\n\n" + check + "\n\n后回复任意消息验证")
+
+@stat.args_parser
+async def __(session: nonebot.CommandSession):
+    striparg = session.current_arg_text.strip()
+    if striparg:
+        session.state['uid'] = striparg
+        return
+    if not striparg:
+        sqlite_cur.execute('select uid from LuoguBindData where UserQQ = ?', (session.event.user_id, ))
+        data = sqlite_cur.fetchall()
+        if data:
+            session.state['uid'] = str(data[0][0])
+        if not data:
+            return
