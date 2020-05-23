@@ -29,7 +29,7 @@ salt = rawdata['salt']
 scr = re.compile(r'(\d)+')
 # End
 
-@nonebot.on_command('stat',permission=nonebot.permission.EVERYBODY)
+@nonebot.on_command('stat',permission=nonebot.permission.PRIVATE)
 async def stat(session: nonebot.CommandSession):
     try: uid = session.args['uid']
     except KeyError: 
