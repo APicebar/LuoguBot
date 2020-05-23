@@ -73,6 +73,15 @@ async def bind(session: nonebot.CommandSession):
     else:
         await session.send("绑定失败，匹配不成功")
 
+@nonebot.on_command('help', permission=nonebot.permission.PRIVATE)
+async def help(session: nonebot.CommandSession):
+    await session.send('''LuoguBot Beta
+/bind <uid> --- 绑定洛谷账号
+/stat [uid] --- 查询洛谷
+/cf --- 最近的CodeForces比赛
+/at --- 最近的ATC比赛
+by APicebar & Naive_Cat''')
+
 @bind.args_parser
 async def _(session: nonebot.CommandSession):
     if session.is_first_run:
