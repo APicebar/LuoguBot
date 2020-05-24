@@ -20,7 +20,7 @@ def get_contest():
     name.clear()
     start.clear()
     length.clear()
-    url = 'https://codeforc.es/contests'
+    url = 'https://codeforc.es/contests?complete=true'
     res = requests.get(url)
     string = res.text
     name=re.findall('<tr data-contestId="[0-9][0-9][0-9][0-9]">\n<td>\n(.*?)\n</td>',string)
@@ -98,7 +98,8 @@ def AT_get_contest():
 async def CodeForces_Report(session: CommandSession):
     global cfcoold
     cd=datetime.datetime.now()-cfcoold
-    if permission.check_permission(bot, session.event, permission.GROUP):
+    per=permission.check_permission(bot, session.event, permission.GROUP)
+    if per:
         if cd.total_seconds() <= 600:
             await session.send("还在冷却...\n等待 %d 秒后再试" % (600-int(cd.total_seconds())))
             return
@@ -111,13 +112,14 @@ async def CodeForces_Report(session: CommandSession):
         for i in range(0,leng):
             string=string+'比赛名称: '+name[i]+'\n比赛开始时间: '+start[i]+'\n比赛时长: '+length[i]+'\n------------------\n'
     await session.send(string)
-    cfcoold=datetime.datetime.now()
+    if per:cfcoold=datetime.datetime.now()
 
 @on_command('AT', aliases=('ATCoder','at','atcoder','Atcoder','AtCoder'), permission=permission.EVERYBODY, only_to_me=False)
 async def ATCoder_Report(session: CommandSession):
     global atcoold
     cd=datetime.datetime.now()-atcoold
-    if permission.check_permission(bot, session.event, permission.GROUP):
+    per=permission.check_permission(bot, session.event, permission.GROUP)
+    if per:
         if cd.total_seconds() <= 600:
             await session.send("还在冷却...\n等待 %d 秒后再试" % (600-int(cd.total_seconds())))
             return
@@ -130,4 +132,4 @@ async def ATCoder_Report(session: CommandSession):
         for i in range(0,leng):
             string=string+'比赛名称: '+name[i]+'\n比赛开始时间: '+start[i]+'\n比赛时长: '+length[i]+'\n------------------\n'
     await session.send(string)
-    atcoold=datetime.datetime.now()
+    if per:atcoold=datetime.datetime.now()
