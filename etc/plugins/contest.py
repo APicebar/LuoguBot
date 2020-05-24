@@ -98,7 +98,7 @@ def AT_get_contest():
 async def CodeForces_Report(session: CommandSession):
     global cfcoold
     cd=datetime.datetime.now()-cfcoold
-    per=permission.check_permission(bot, session.event, permission.GROUP)
+    per=await permission.check_permission(bot, session.event, permission.GROUP)
     if per:
         if cd.total_seconds() <= 600:
             await session.send("还在冷却...\n等待 %d 秒后再试" % (600-int(cd.total_seconds())))
@@ -118,7 +118,7 @@ async def CodeForces_Report(session: CommandSession):
 async def ATCoder_Report(session: CommandSession):
     global atcoold
     cd=datetime.datetime.now()-atcoold
-    per=permission.check_permission(bot, session.event, permission.GROUP)
+    per=await permission.check_permission(bot, session.event, permission.GROUP)
     if per:
         if cd.total_seconds() <= 600:
             await session.send("还在冷却...\n等待 %d 秒后再试" % (600-int(cd.total_seconds())))
