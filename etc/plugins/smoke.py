@@ -4,7 +4,7 @@ import json
 enable_group = json.load(open("./data/enable.json")).get('enable_group', None)
 bot = nonebot.get_bot()
 
-@nonebot.on_command('sleep', permission=nonebot.permission.GROUP)
+@nonebot.on_command('sleep', permission=nonebot.permission.GROUP, only_to_me=False)
 async def sleep(session: nonebot.CommandSession):
     if session.event.group_id in enable_group:
         await bot.set_group_ban(session.event.group_id, session.event.user_id, 28800)
@@ -18,7 +18,7 @@ async def cancel(session: nonebot.CommandSession):
         await bot.set_group_ban(i, userid, 0)
     await session.send("执行成功")"""
 
-@nonebot.on_command('smoke', permission=nonebot.permission.GROUP)
+@nonebot.on_command('smoke', permission=nonebot.permission.GROUP, only_to_me=False)
 async def smoke(session: nonebot.CommandSession):
     if session.event.group_id in enable_group:
         await bot.set_group_ban(session.event.group_id, session.event.user_id, 3600)
