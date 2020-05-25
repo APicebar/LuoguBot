@@ -1,7 +1,7 @@
 import nonebot
 import json
 
-enable_group = json.loads(open("./data/enable.json"))
+enable_group = json.load(open("./data/enable.json")).get('enable_group', None)
 bot = nonebot.get_bot()
 
 @nonebot.on_command('sleep', permission=nonebot.permission.GROUP)
