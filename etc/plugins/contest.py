@@ -94,12 +94,11 @@ def AT_get_contest():
         start.append(orz)
     return res
 
-@on_command('CF', aliases=('CodeForces','cf','codeforces','Codeforces'), permission=permission.EVERYBODY, only_to_me=False)
+@on_command('CF', aliases=('CodeForces','cf','codeforces','Codeforces'), only_to_me=False)
 async def CodeForces_Report(session: CommandSession):
     global cfcoold
     cd=datetime.datetime.now()-cfcoold
-    per=await permission.check_permission(bot, session.event, permission.GROUP)
-    if per:
+    if session.event.group_id:
         if cd.total_seconds() <= 600:
             await session.send("还在冷却...\n等待 %d 秒后再试" % (600-int(cd.total_seconds())))
             return
@@ -112,14 +111,13 @@ async def CodeForces_Report(session: CommandSession):
         for i in range(0,leng):
             string=string+'比赛名称: '+name[i]+'\n比赛开始时间: '+start[i]+'\n比赛时长: '+length[i]+'\n------------------\n'
     await session.send(string)
-    if per:cfcoold=datetime.datetime.now()
+    if session.event.group_id:cfcoold=datetime.datetime.now()
 
-@on_command('AT', aliases=('ATCoder','at','atcoder','Atcoder','AtCoder'), permission=permission.EVERYBODY, only_to_me=False)
+@on_command('AT', aliases=('ATCoder','at','atcoder','Atcoder','AtCoder'), only_to_me=False)
 async def ATCoder_Report(session: CommandSession):
     global atcoold
     cd=datetime.datetime.now()-atcoold
-    per=await permission.check_permission(bot, session.event, permission.GROUP)
-    if per:
+    if session.event.group_id:
         if cd.total_seconds() <= 600:
             await session.send("还在冷却...\n等待 %d 秒后再试" % (600-int(cd.total_seconds())))
             return
@@ -132,4 +130,13 @@ async def ATCoder_Report(session: CommandSession):
         for i in range(0,leng):
             string=string+'比赛名称: '+name[i]+'\n比赛开始时间: '+start[i]+'\n比赛时长: '+length[i]+'\n------------------\n'
     await session.send(string)
-    if per:atcoold=datetime.datetime.now()
+    if session.event.group_id:atcoold=datetime.datetime.now()
+
+@on_command("外网功能", only_to_me=False)
+async def help(session: CommandSession):
+    await session.send('''LuoguBot --- 外网OJ功能
+
+!cf --- 最近的CodeForces比赛
+!at --- 最近的ATC比赛
+!cfrating <name>--- 查询CodeForces Rating
+!atrating <name>--- 查询ATC Rating''')
