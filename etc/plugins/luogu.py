@@ -33,7 +33,6 @@ scr = re.compile(r'(\d)+')
 async def stat(session: nonebot.CommandSession):
     try: uid = session.args['uid']
     except KeyError: 
-        await session.send('没有绑定或者uid!')
         return
     try:
         urlconn = request.urlopen('https://www.luogu.com.cn/user/' + uid + '?_contentOnly=1')
@@ -80,15 +79,15 @@ async def bind(session: nonebot.CommandSession):
     else:
         await session.send("绑定失败，匹配不成功")
 
-@nonebot.on_command('help', permission=nonebot.permission.PRIVATE)
+@nonebot.on_command('help', only_to_me=False)
 async def help(session: nonebot.CommandSession):
     await session.send('''LuoguBot Beta
-/bind <uid> --- 绑定洛谷账号
-/stat [uid] --- 查询洛谷
-/cf --- 最近的CodeForces比赛
-/at --- 最近的ATC比赛
-/cfrating <name>--- 查询CodeForces Rating
-/atrating <name>--- 查询ATC Rating
+
+!bind <uid> --- 绑定洛谷账号
+!stat [uid] --- 查询洛谷
+!外网功能
+!抽烟功能
+
 by APicebar & Naive_Cat''')
 
 @bind.args_parser
@@ -117,12 +116,17 @@ async def _(session: nonebot.CommandSession):
 async def __(session: nonebot.CommandSession):
     striparg = session.current_arg_text.strip()
     if striparg:
-        session.state['uid'] = striparg
-        return
+        if striparg.isdigit():
+            session.state['uid'] = striparg
+            return
+        else:
+            await session.send("这是uid¿")
+            return
     if not striparg:
         sqlite_cur.execute('select uid from LuoguBindData where UserQQ = ?', (session.event.user_id, ))
         data = sqlite_cur.fetchall()
         if data:
             session.state['uid'] = str(data[0][0])
         if not data:
+            await session.send('没有绑定或者uid!')
             return
