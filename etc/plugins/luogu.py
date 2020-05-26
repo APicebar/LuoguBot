@@ -29,13 +29,14 @@ salt = rawdata['salt']
 scr = re.compile(r'(\d)+')
 # End
 
-@nonebot.on_command('stat',permission=nonebot.permission.PRIVATE)
+@nonebot.on_command('stat', only_to_me=False)
 async def stat(session: nonebot.CommandSession):
     try: uid = session.args['uid']
     except KeyError: 
         return
     if int(uid) == 117697:
         await session.send("你查这个傻逼干啥")
+        return
     try:
         urlconn = request.urlopen('https://www.luogu.com.cn/user/' + uid + '?_contentOnly=1')
     except error.HTTPError:
