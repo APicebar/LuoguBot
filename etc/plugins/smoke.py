@@ -79,9 +79,9 @@ async def __(session: nonebot.CommandSession):
     if not striparg.isalnum():
         await session.send("格式不对!")
         nonebot.command.kill_current_session(session.event)
-    rem = re.compile(r"((\d)?\d)m").search(striparg)
-    red = re.compile(r"((\d)?\d)d").search(striparg)
-    reh = re.compile(r"((\d)?\d)h").search(striparg)
+    rem = re.compile(r"((\d)?(\d)?\d)m").search(striparg)
+    red = re.compile(r"((\d)?(\d)?\d)d").search(striparg)
+    reh = re.compile(r"((\d)?(\d)?\d)h").search(striparg)
     minute = 0
     hour = 0
     day = 0
