@@ -37,6 +37,9 @@ async def afk(session: nonebot.CommandSession):
         await session.send("没这种格式, 重新输入罢")
         return
     time = timedelta(days=arg['day'], minutes=arg['minute'], hours=arg['hour']).total_seconds()
+    if time == 0:
+        await session.send("0s禁言你horse呢?")
+        return
     reply = "发烟成功: "
     if arg['day']:
         reply += (str(arg['day']) + "天")
@@ -79,6 +82,7 @@ async def __(session: nonebot.CommandSession):
     if not striparg.isalnum():
         await session.send("格式不对!")
         nonebot.command.kill_current_session(session.event)
+        return
     rem = re.compile(r"((\d)?(\d)?\d)m").search(striparg)
     red = re.compile(r"((\d)?(\d)?\d)d").search(striparg)
     reh = re.compile(r"((\d)?(\d)?\d)h").search(striparg)
