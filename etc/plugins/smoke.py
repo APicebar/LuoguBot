@@ -4,7 +4,8 @@ import config
 import re
 from datetime import timedelta
 
-enable_group = json.load(open("./data/enable.json")).get('enable_group', None)
+enable_group = json.load(open("./data/config.json")).get('enable_group', None)
+banlist = json.load(open("./data/config.json")).get('banlist', None)
 bot = nonebot.get_bot()
 
 @nonebot.on_command('sleep', permission=nonebot.permission.GROUP, only_to_me=False)
@@ -30,7 +31,8 @@ async def smoke(session: nonebot.CommandSession):
         await bot.set_group_ban(group_id=session.event.group_id, user_id=session.event.user_id, duration=3600)
         await session.send("发烟成功: 1小时")
 
-@nonebot.on_command('afk', permission=nonebot.permission.GROUP, only_to_me=False)
+# TODO: Afk.
+"""@nonebot.on_command('afk', permission=nonebot.permission.GROUP, only_to_me=False)
 async def afk(session: nonebot.CommandSession):
     arg = session.args
     if arg['minute'] >= 60 or arg['hour'] >= 24 or arg['day'] >= 30:
@@ -48,7 +50,7 @@ async def afk(session: nonebot.CommandSession):
     if arg['minute']:
         reply += (str(arg['minute']) + "分")
     await bot.set_group_ban(group_id=session.event.group_id, user_id=session.event.user_id, duration=int(time))
-    await session.send(reply)
+    await session.send(reply)"""
 
 @nonebot.on_command('抽烟功能', only_to_me=False)
 async def help(session: nonebot.CommandSession):
@@ -56,9 +58,7 @@ async def help(session: nonebot.CommandSession):
 
 !smoke --- 1小时抽烟, 冷静一下
 !sleep --- 8小时精致睡眠套餐
-!afk [arg] --- 指定时长发烟
-    格式为xdxhxm x为整数
-    例: !afk 11d4h51m
+
 !cancel [QQ号] --- 取消禁言
 
 cancel时如果指定QQ号则需要超级用户权限''')
@@ -73,7 +73,7 @@ async def _(session: nonebot.CommandSession):
             await session.send("这是qq号¿")
             nonebot.command.kill_current_session(session.event)
 
-@afk.args_parser
+"""@afk.args_parser
 async def __(session: nonebot.CommandSession):
     striparg = session.current_arg.strip()
     if not striparg:
@@ -83,18 +83,16 @@ async def __(session: nonebot.CommandSession):
         await session.send("格式不对!")
         nonebot.command.kill_current_session(session.event)
         return
-    rem = re.compile(r"((\d)?(\d)?\d)m").search(striparg)
-    red = re.compile(r"((\d)?(\d)?\d)d").search(striparg)
-    reh = re.compile(r"((\d)?(\d)?\d)h").search(striparg)
+    reg = re.compile(r"((\d+)d)?((\d+)m)?((\d+)s)?").search(striparg)
     minute = 0
     hour = 0
     day = 0
-    if rem:
+    if reg:
         minute = int(rem.group(1))
-    if reh:
-        hour = int(reh.group(1))
-    if red:
-        day = int(red.group(1))
     session.state['minute'] = minute
     session.state['hour'] = hour
     session.state['day'] = day
+
+!afk [arg] --- 指定时长发烟
+格式为xdxhxm x为整数
+例: !afk 11d4h51m"""
