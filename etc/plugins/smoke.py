@@ -44,7 +44,7 @@ async def afk(session: nonebot.CommandSession):
         reply += (str(arg['hour']) + "小时")
     if arg['minute']:
         reply += (str(arg['minute']) + "分")
-    await bot.set_group_ban(group_id=session.event.group_id, user_id=session.event.user_id, duration=time)
+    await bot.set_group_ban(group_id=session.event.group_id, user_id=session.event.user_id, duration=int(time))
     await session.send(reply)
 
 @nonebot.on_command('抽烟功能', only_to_me=False)
