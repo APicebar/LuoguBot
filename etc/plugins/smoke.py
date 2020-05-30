@@ -40,11 +40,11 @@ async def afk(session: nonebot.CommandSession):
             return
     except KeyError:
         return
-    time = timedelta(days=arg['1'], minutes=arg['2'], hours=arg['3'], seconds=arg['4']).total_seconds()
+    time = timedelta(days=arg['1'], minutes=arg['3'], hours=arg['2'], seconds=arg['4']).total_seconds()
     if time == 0:
         await session.send("0s禁言你horse呢?")
         return
-    if time > 108000:
+    if time > 2592000:
         await session.send("超过30天力!")
         return
     reply = "发烟成功: "
