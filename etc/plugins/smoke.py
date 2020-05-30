@@ -96,6 +96,6 @@ async def __(session: nonebot.CommandSession):
     reg = re.compile(r"((\d+)d)?((\d+)h)?((\d+)m)?((\d+)s)?").search(striparg)
     for i in range(2, 9, 2):
         if reg.group(i):
-            session.state['%d' % (i/2)] = reg.group(i)
+            session.state['%d' % (i/2)] = int(reg.group(i))
         else:
             session.state['%d' % (i/2)] = 0
