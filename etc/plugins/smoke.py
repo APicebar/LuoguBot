@@ -12,7 +12,7 @@ bot = nonebot.get_bot()
 async def sleep(session: nonebot.CommandSession):
     if session.event.group_id in enable_group:
         await bot.set_group_ban(group_id=session.event.group_id, user_id=session.event.user_id, duration=21600)
-        await session.send("发烟成功: 8小时\n晚安qwq")
+        await session.send("发烟成功: 6小时\n晚安qwq")
 
 @nonebot.on_command('cancel', only_to_me=False)
 async def cancel(session: nonebot.CommandSession):
