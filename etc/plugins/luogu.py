@@ -90,6 +90,7 @@ async def help(session: nonebot.CommandSession):
 !stat [uid] --- 查询洛谷
 !外网功能
 !抽烟功能
+!smjb
 
 by APicebar & Naive_Cat''')
 
@@ -98,11 +99,11 @@ async def _(session: nonebot.CommandSession):
     if session.is_first_run:
         striparg = session.current_arg.strip()
         if not striparg:
-            await session.send("uid呢?\n/bind <uid>")
+            await session.send("uid呢?\n!bind <uid>")
             return
         uid = scr.search(striparg).group()
         if not uid:
-            await session.send("这8是uid\n/bind <uid>")
+            await session.send("这8是uid\n!bind <uid>")
             return
         req = request.urlopen(url + "/user/" + uid + '?_contentOnly')
         raw = json.loads(req.read())
