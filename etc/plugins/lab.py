@@ -7,10 +7,10 @@ bot = nonebot.get_bot()
 @nonebot.on_command('tag', permission=nonebot.permission.GROUP, only_to_me=False)
 async def tag(session: nonebot.CommandSession):
     arg = session.args
-    if arg['qq'] == session.event.user_id:
-        await session.send("?不能改自己的")
-        return
     try:
+        if arg['qq'] == session.event.user_id:
+            await session.send("?不能改自己的")
+            return
         await bot.set_group_special_title(group_id=session.event.group_id, user_id=arg['qq'], special_title=arg['str'])
         await session.send("操作成功")
     except KeyError:
@@ -33,7 +33,7 @@ async def _(session: nonebot.CommandSession):
         return
     try:
         if reg.group(1):
-            session.state['str'] = arg[1]
             session.state['qq'] = int(reg.group(1))
+            session.state['str'] = arg[1]
     except IndexError:
         session.state['str'] = ''
