@@ -1,4 +1,3 @@
-import pathlib
 import json
 import nonebot
 from aiocqhttp.exceptions import Error as CQHttpError
@@ -23,11 +22,47 @@ nonebot.logger.info('SQLite Init Success.')
 rawdata = json.load(open("./data/luogu/config.json"))
 url = "https://www.luogu.com.cn"
 salt = rawdata['salt']
+header = {}
+header['User-Agent'] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:76.0) Gecko/20100101 Firefox/76.0"
+header['Cookie'] = rawdata['cookie']
 # End
 
 # Other
+bot = nonebot.get_bot()
 scr = re.compile(r'(\d)+')
+status = {3:'OLE', 12:'AC', 6:'WA', 5:'TLE', 4:'MLE', 11:'UKE', 7:'RE'}
 # End
+
+def get_rec(uid, session: nonebot.CommandSession):
+    req = request.Request(headers=header,url=url+"/record/list?_contentOnly&user="+str(uid))
+    try:
+        data = json.loads(request.urlopen(req).read())
+    except error.HTTPError:
+        # await session.send("你咕炸力，连不上!")
+        return 502
+    try:
+        rec = data['currentData']['records']['result']
+        if not rec:
+            # await session.send("没有记录啊.jpg")
+            return 404
+        rec = rec[0]
+    except KeyError:
+        # await session.send("拿到的数据不对，是不是cookie被下了?\n已经report给鸽棍了，等着修吧")
+        # await bot.send_private_msg(user_id=912370623, message="cookie好像被下了，去检修罢")
+        return -1
+    try:
+        req = request.Request(url=url+"/record/"+str(rec['id'])+"?_contentOnly", headers=header)
+        data = json.loads(request.urlopen(req).read())
+    except error.HTTPError:
+        return 502
+    return data['currentData']['record']
+
+def build_msg(rec: dict):
+    msg = rec['user']['name'] + ' ' + rec['problem']['pid']
+    if rec['status'] == 12: msg += ('\nAC %d' % rec['score'])
+    else: msg += ('\nUnAC %d' % rec['score'])
+    msg += (' | %dKB | %dms' % (rec['memory'], rec['time']))
+    return msg
 
 @nonebot.on_command('stat', only_to_me=False)
 async def stat(session: nonebot.CommandSession):
@@ -81,6 +116,29 @@ async def bind(session: nonebot.CommandSession):
                     (data['name'], data['passedProblemCount'], data['submittedProblemCount'], data['ccfLevel']))
     else:
         await session.send("绑定失败，匹配不成功")
+
+@nonebot.on_command('recent', only_to_me=False)
+async def recent(session: nonebot.CommandSession):
+    sqlite_cur.execute('select uid from LuoguBindData where UserQQ = ?', (session.event.user_id, ))
+    data = sqlite_cur.fetchall()
+    if not data:
+        await session.send("你还没绑定呢.jpg")
+        return
+    rec = get_rec(data[0][0], session)
+    if rec == 502:
+        await session.send("你咕炸力，连不上!")
+        return
+    elif rec == 404:
+        await session.send("没有记录啊.jpg")
+        return
+    elif rec == -1:
+        await session.send("拿到的数据不对，是不是cookie被下了?\n已经report了，等着修吧")
+        await bot.send_private_msg(user_id=912370623, message="cookie好像被下了，去检修罢")
+        return
+    else: pass
+    msg = build_msg(rec)
+    await session.send(msg)
+    
 
 @nonebot.on_command('help', only_to_me=False)
 async def help(session: nonebot.CommandSession):
