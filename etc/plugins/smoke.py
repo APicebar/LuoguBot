@@ -88,7 +88,7 @@ async def _(session: nonebot.CommandSession):
 async def __(session: nonebot.CommandSession):
     striparg = session.current_arg.strip()
     if not striparg:
-        session.state['minute'] = 10
+        session.state['3'] = 10
         return
     if not striparg.isalnum():
         await session.send("格式不对!")
