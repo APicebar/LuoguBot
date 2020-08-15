@@ -6,6 +6,7 @@ import random
 from urllib import request, error
 import hashlib
 import re
+from datetime import datetime
 
 # SQLite Init
 sqlite = sqlite3.connect('./data/luogu/data.db')
@@ -30,7 +31,7 @@ header['Cookie'] = rawdata['cookie']
 # Other
 bot = nonebot.get_bot()
 scr = re.compile(r'(\d)+')
-status = {3:'OLE', 12:'AC', 6:'WA', 5:'TLE', 4:'MLE', 11:'UKE', 7:'RE'}
+status = {3:'O', 12:'A', 6:'W', 5:'T', 4:'M', 11:'U', 7:'R'}
 # End
 
 def get_rec(uid, session: nonebot.CommandSession):
@@ -59,9 +60,56 @@ def get_rec(uid, session: nonebot.CommandSession):
 
 def build_msg(rec: dict):
     msg = rec['user']['name'] + ' ' + rec['problem']['pid']
-    if rec['status'] == 12: msg += ('\nAC %d' % rec['score'])
-    else: msg += ('\nUnAC %d' % rec['score'])
-    msg += (' | %dKB | %dms' % (rec['memory'], rec['time']))
+    if not rec['detail']['compileResult']['success']:
+        msg += ('CE\n' + rec['detail']['compileResult']['message'][:100])
+        if rec['detail']['compileResult']['message'].length() > 100: msg += '...'
+        return msg
+    if rec['status'] == 12: msg += ('\nAC')
+    else: msg += ('\nUnAC')
+    try:
+        msg +=' %d' % rec['score']
+    except KeyError: pass
+    msg += (' | %dKB | %dms\n' % (rec['memory'], rec['time']))
+    if type(rec['detail']['judgeResult']['subtasks']) == dict:
+        for i in rec['detail']['judgeResult']['subtasks'].values():
+            msg += ("\nSubtask #%d\n" % i['id'])
+            tmp = []
+            if type(i['testCases']) == dict:
+                for j in i['testCases'].values():
+                    tmp.append(j)
+            else:
+                for j in i['testCases']:
+                    tmp.append(j)
+            tmp.sort(key=(lambda a: a['id']))
+            cnt = 0
+            for j in tmp:
+                msg += status[j['status']]
+                cnt +=1
+                if cnt >=20:
+                    msg += '\n'
+                    cnt = 0
+            msg += "\n\n"
+        msg += datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    else:
+        for i in rec['detail']['judgeResult']['subtasks']:
+            msg += ("\nSubtask #%d\n" % i['id'])
+            tmp = []
+            if type(i['testCases']) == dict:
+                for j in i['testCases'].values():
+                    tmp.append(j)
+            else:
+                for j in i['testCases']:
+                    tmp.append(j)
+            tmp.sort(key=(lambda a: a['id']))
+            cnt = 0
+            for j in tmp:
+                msg += status[j['status']]
+                cnt +=1
+                if cnt >=20:
+                    msg += '\n'
+                    cnt = 0
+            msg += "\n\n"
+        msg += datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return msg
 
 @nonebot.on_command('stat', only_to_me=False)
@@ -94,7 +142,7 @@ async def stat(session: nonebot.CommandSession):
             + '\nCCF评级:' + level)
 
 
-@nonebot.on_command('bind', permission=nonebot.permission.PRIVATE)
+@nonebot.on_command('bind', only_to_me=False)
 async def bind(session: nonebot.CommandSession):
     args = session.args
     try:
@@ -112,19 +160,23 @@ async def bind(session: nonebot.CommandSession):
         sqlite_cur.execute("insert into LuoguBindData values(%d, %d, '%s', 100)" % 
                             (session.event.user_id, data['uid'], data['name']))
         sqlite.commit()
-        await session.send("绑定成功!\n%s\nAC/Submit: %d/%d\nCCF评级: %d" % 
+        await session.send("绑定成功!\n%s\nAC/Submit: %s/%s\nCCF评级: %s" % 
                     (data['name'], data['passedProblemCount'], data['submittedProblemCount'], data['ccfLevel']))
     else:
         await session.send("绑定失败，匹配不成功")
 
 @nonebot.on_command('recent', only_to_me=False)
 async def recent(session: nonebot.CommandSession):
-    sqlite_cur.execute('select uid from LuoguBindData where UserQQ = ?', (session.event.user_id, ))
-    data = sqlite_cur.fetchall()
-    if not data:
-        await session.send("你还没绑定呢.jpg")
-        return
-    rec = get_rec(data[0][0], session)
+    uid = None
+    if not session.args:
+        sqlite_cur.execute('select uid from LuoguBindData where UserQQ = ?', (session.event.user_id, ))
+        uid = sqlite_cur.fetchall()
+        if not uid:
+            await session.send("你还没绑定呢.jpg")
+            return
+        uid = uid[0][0]
+    else: uid = session.args['uid']
+    rec = get_rec(uid, session)
     if rec == 502:
         await session.send("你咕炸力，连不上!")
         return
@@ -144,6 +196,7 @@ async def recent(session: nonebot.CommandSession):
 async def help(session: nonebot.CommandSession):
     await session.send('''LuoguBot Beta
 
+!recent [uid] --- 最近一次提交记录
 !bind <uid> --- 绑定洛谷账号
 !stat [uid] --- 查询洛谷
 !外网功能
@@ -192,3 +245,9 @@ async def __(session: nonebot.CommandSession):
         if not data:
             await session.send('没有绑定或者uid!')
             return
+
+@recent.args_parser
+async def ___(session: nonebot.CommandSession):
+    striparg = session.current_arg.strip()
+    if striparg:
+        session.state['uid'] = striparg
