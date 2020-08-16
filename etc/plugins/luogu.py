@@ -88,7 +88,8 @@ def build_msg(rec: dict):
                 if cnt >=20:
                     msg += '\n'
                     cnt = 0
-            msg += "\n\n"
+            msg += "\n"
+        msg += "\n"
         msg += datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     else:
         for i in rec['detail']['judgeResult']['subtasks']:
@@ -108,7 +109,8 @@ def build_msg(rec: dict):
                 if cnt >=20:
                     msg += '\n'
                     cnt = 0
-            msg += "\n\n"
+            msg += "\n"
+        msg += "\n"
         msg += datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return msg
 
@@ -202,6 +204,8 @@ async def help(session: nonebot.CommandSession):
 !外网功能
 !抽烟功能
 !smjb
+!setu --- 来丶涩图
+!feed --- 救救孩子.jpg
 
 by APicebar & Naive_Cat''')
 
