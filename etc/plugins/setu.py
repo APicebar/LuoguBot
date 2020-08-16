@@ -11,6 +11,7 @@ async def setu(session: nonebot.CommandSession):
         r = random.randint(0,249359)
         url = Url + '?page=%d&limit=1' % r
         data = json.loads(request.urlopen(url=url).read())
+        if data['rating'] == 'e': continue
         if data:
             await session.send("[CQ:at,qq=%d]\n[CQ:image,file=%s]" % (session.event.user_id, data[0]['jpeg_url']))
             break
