@@ -2,11 +2,17 @@ import nonebot
 import random
 from urllib import request, error
 import json
+from datetime import timedelta, datetime
 
 Url = 'https://konachan.net/post.json'
+cd = datetime.now()
 
 @nonebot.on_command('setu',only_to_me=False)
 async def setu(session: nonebot.CommandSession):
+    t = datetime.now() - cd
+    if t.seconds() < 240:
+        await session.send("乖, 不能太贪心哦←_←\n剩余%d秒" % t.seconds())
+        return
     while True:
         r = random.randint(0,249359)
         url = Url + '?page=%d&limit=1' % r
@@ -16,6 +22,7 @@ async def setu(session: nonebot.CommandSession):
             break
         if data:
             await session.send("[CQ:at,qq=%d]\n[CQ:image,file=%s]" % (session.event.user_id, data[0]['jpeg_url']))
+            cd = datetime.now()
             break
 
 # @setu.args_parser
