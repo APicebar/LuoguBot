@@ -5,11 +5,11 @@ import json
 from datetime import timedelta, datetime
 
 Url = 'https://konachan.net/post.json'
-cd = datetime.now()
+cd = {}
 
 @nonebot.on_command('setu',only_to_me=False)
 async def setu(session: nonebot.CommandSession):
-    t = datetime.now() - cd
+    t = datetime.now() - cd[session.event.user_id]
     if t.seconds() < 240:
         await session.send("乖, 不能太贪心哦←_←\n剩余%d秒" % t.seconds())
         return
@@ -22,7 +22,7 @@ async def setu(session: nonebot.CommandSession):
             break
         if data:
             await session.send("[CQ:at,qq=%d]\n[CQ:image,file=%s]" % (session.event.user_id, data[0]['jpeg_url']))
-            cd = datetime.now()
+            cd[session.event.user_id] = datetime.now()
             break
 
 # @setu.args_parser
