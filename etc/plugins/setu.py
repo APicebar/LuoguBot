@@ -9,7 +9,12 @@ cd = {}
 
 @nonebot.on_command('setu',only_to_me=False)
 async def setu(session: nonebot.CommandSession):
+<<<<<<< HEAD
     t = datetime.now() - cd[session.event.user_id]
+=======
+    global cd
+    t = datetime.now() - cd
+>>>>>>> b3dcc824aac525791915a36ef6cd05b6b4583cf6
     if t.seconds() < 240:
         await session.send("乖, 不能太贪心哦←_←\n剩余%d秒" % t.seconds())
         return
@@ -22,7 +27,11 @@ async def setu(session: nonebot.CommandSession):
             break
         if data:
             await session.send("[CQ:at,qq=%d]\n[CQ:image,file=%s]" % (session.event.user_id, data[0]['jpeg_url']))
+<<<<<<< HEAD
             cd[session.event.user_id] = datetime.now()
+=======
+            if session.event.group_id: cd = datetime.now()
+>>>>>>> b3dcc824aac525791915a36ef6cd05b6b4583cf6
             break
 
 # @setu.args_parser
