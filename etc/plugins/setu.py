@@ -14,7 +14,7 @@ async def setu(session: nonebot.CommandSession):
     if t.total_seconds() < 240:
         await session.send("乖, 不能太贪心哦←_←\n剩余%d秒" % (240 - int(t.total_seconds())))
         return
-    data = json.loads(request.urlopen(url=Url[site]).read())
+    data = json.loads(request.urlopen(url=Url[0]).read())
     await session.send("[CQ:image,file=%s]" % data['imgurl'])
     cd[session.event.user_id] = datetime.now()
 
