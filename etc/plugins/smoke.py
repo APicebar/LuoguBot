@@ -44,8 +44,8 @@ async def afk(session: nonebot.CommandSession):
     if time == 0:
         await session.send("0s禁言你horse呢?")
         return
-    if time > 2592000:
-        await session.send("超过30天力!")
+    if time >= 2592000:
+        await session.send("必须小于30天!")
         return
     reply = "发烟成功: "
     if arg['1']:
