@@ -53,6 +53,20 @@ async def help(session: nonebot.CommandSession):
 pid务必带上前缀，如CF1428B, P1577等
 不支持U/T前缀的题目''')
 
+@nonebot.on_command("changerec", only_to_me=False, permission=nonebot.permission.SUPERUSER)
+async def changerec(session: nonebot.CommandSession):
+    num = session.args['num']
+    data = cur.execute("SELECT id, uid, pid, diff, time from ChangeRec order by id desc LIMIT %d" % num).fetchall()
+    msg = 'id | uid | pid | 难度 | 时间'
+    if not data:
+        await session.send("暂无数据= =")
+    else:
+        for i in data:
+            msg += '\n'
+            for j in i:
+                msg += str(j) + ' '
+        await session.send(msg)
+
 @submit.args_parser
 async def _(session: nonebot.CommandSession):
     striparg = session.current_arg_text.strip().split()
@@ -84,3 +98,11 @@ async def _(session: nonebot.CommandSession):
     except ValueError:
         await session.send("非法参数.jpg")
         session.state['ok'] = 0
+
+@changerec.args_parser
+async def __(session: nonebot.CommandSession):
+    arg = session.current_arg.strip()
+    if not arg:
+        session.state['num'] = 5
+    else:
+        session.state['num'] = int(arg)
