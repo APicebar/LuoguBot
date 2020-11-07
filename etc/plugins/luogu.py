@@ -203,6 +203,7 @@ async def help(session: nonebot.CommandSession):
 !stat [uid] --- 查询洛谷
 !外网功能
 !抽烟功能
+!难度数据 (Alpha)
 !smjb
 !setu --- 来丶涩图
 !feed --- 救救孩子.jpg
