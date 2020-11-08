@@ -76,7 +76,7 @@ async def _(session: nonebot.CommandSession):
             session.state['ok'] = 0
             return
         session.state['diff'] = int(striparg[1])
-        if striparg[0].startswith("T") or striparg[0].startswith("U"):
+        if striparg[0].startswith("T") or (striparg[0].startswith("U") and not striparg[0].startswith("UVA")):
             await session.send("不支持U/T前缀的题目 = =")
             session.state['ok'] = 0
             return
