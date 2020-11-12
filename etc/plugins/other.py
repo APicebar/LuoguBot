@@ -12,6 +12,6 @@ async def broadcast(session: nonebot.CommandSession):
     try:
         g_list = await bot.get_group_list()
         for i in g_list:
-            await bot.send_group_msg(group_id=i, message=session.current_arg_text)
+            await bot.send_group_msg(group_id=i['group_id'], message=session.current_arg_text)
     except CQHttpError.ActionFailed:
         await session.send("失败: 账号可能被风控")
